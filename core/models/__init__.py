@@ -17,6 +17,7 @@ from .tag import Tag
 from .datastore import DataStore, DataStoreEntry
 from .api_token import DataStoreAPIToken
 from .claude_usage import ClaudeUsage
+from .media import MediaJob, DestinationRun, WorkerHeartbeat
 
 __all__ = [
     "User",
@@ -36,4 +37,7 @@ __all__ = [
     "DataStoreEntry",
     "DataStoreAPIToken",
     "ClaudeUsage",
+    "MediaJob",
+    "DestinationRun",
+    "WorkerHeartbeat",
 ]

@@ -7,6 +7,7 @@ import signal
 import socket
 import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
 from pathlib import Path
 
@@ -199,10 +200,18 @@ def execute_job(job_id: str):
     job.save(update_fields=["status", "started_at", "lease_expires_at", "updated_at"])
     payload = _payload(job)
     destinations = {str(item.get("id")): item for item in payload.get("destinations", [])}
-    for run in job.destination_runs.all():
-        destination = destinations.get(run.destination_id)
-        if destination:
-            _run_destination(job, run, destination, payload)
+    runs = list(job.destination_runs.all())
+    with ThreadPoolExecutor(max_workers=max(1, min(len(runs), int(os.environ.get("MEDIA_MAX_DESTINATIONS", "20"))))) as pool:
+        futures = {
+            pool.submit(_run_destination, job, run, destinations[run.destination_id], payload): run.destination_id
+            for run in runs
+            if run.destination_id in destinations
+        }
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception:
+                logger.exception("Destination worker failed: %s", futures[future])
     job.refresh_from_db()
     failed = job.destination_runs.filter(status=DestinationRun.Status.FAILED).exists()
     job.status = MediaJob.Status.FAILED if failed else MediaJob.Status.COMPLETED

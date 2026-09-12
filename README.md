@@ -145,3 +145,27 @@ lean.
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+## QC Live media-worker mode
+
+PyRunner includes a dedicated media-worker API for QC Live. This mode supervises encrypted media jobs and isolated FFmpeg processes; it does not expose PyRunner's arbitrary script executor to QC Live users.
+
+Configure the following in `.env`:
+
+```env
+MEDIA_WORKER_TOKEN=<same-long-random-token-configured-in-QC-Live>
+MEDIA_WORKER_ID=worker-01
+MEDIA_WORKER_CAPACITY=1
+MEDIA_MAX_DESTINATIONS=20
+FFMPEG_PRESET=faster
+MEDIA_WORKER_MEDIA_ROOT=/app/media
+```
+
+The worker API is available under `/api/v1/media/` and requires `Authorization: Bearer <MEDIA_WORKER_TOKEN>`. It supports heartbeat, job creation, job status, and job stop operations. Mount `/app/media` to the same durable or synchronized media storage used by QC Live; a local path on the Vercel dashboard is not visible to the worker.
+
+For production, place the worker behind private networking or an allowlist, use a long random token, keep `DEBUG=False`, and provide enough CPU, memory, disk, and outbound bandwidth for the selected number of 720p/1080p destinations. Run database migrations before starting the worker:
+
+```bash
+docker compose run --rm pyrunner python manage.py migrate
+docker compose up -d
+```

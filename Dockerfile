@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     curl \
     ca-certificates \
+    ffmpeg \
     gnupg \
     && mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
@@ -36,7 +37,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create data directories
-RUN mkdir -p /app/data/environments /app/data/workdir
+RUN mkdir -p /app/data/environments /app/data/workdir /app/media
 
 # Collect static files (build-time only keys, not used at runtime)
 ENV SECRET_KEY="build-only-key-not-for-runtime"

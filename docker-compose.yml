@@ -7,10 +7,18 @@ services:
     volumes:
       # Persist database and environments
       - pyrunner_data:/app/data
+      # Persist or share source media with the worker
+      - pyrunner_media:/app/media
     environment:
       # Required - container will fail to start if not set.
       # Generate with the commands shown in .env.example
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+      - MEDIA_WORKER_TOKEN=${MEDIA_WORKER_TOKEN:-}
+      - MEDIA_WORKER_ID=${MEDIA_WORKER_ID:-worker-01}
+      - MEDIA_WORKER_CAPACITY=${MEDIA_WORKER_CAPACITY:-1}
+      - MEDIA_MAX_DESTINATIONS=${MEDIA_MAX_DESTINATIONS:-20}
+      - FFMPEG_PRESET=${FFMPEG_PRESET:-faster}
+      - MEDIA_WORKER_MEDIA_ROOT=${MEDIA_WORKER_MEDIA_ROOT:-/app/media}
 
       # Django settings - SECRET_KEY is also required (no default)
       - SECRET_KEY=${SECRET_KEY:-}
@@ -45,4 +53,6 @@ services:
 
 volumes:
   pyrunner_data:
+    driver: local
+  pyrunner_media:
     driver: local
